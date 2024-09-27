@@ -4,7 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import Register from "./components/Register";
 import Login from "./components/Login";
 import { initializeApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, GoogleAuthProvider, signInWithPopup, FacebookAuthProvider, linkWithPopup } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, GoogleAuthProvider, signInWithPopup, FacebookAuthProvider, TwitterAuthProvider, fetchSignInMethodsForEmail, GithubAuthProvider } from "firebase/auth";
 import { getDatabase, ref, set } from "firebase/database";
 
 const firebaseConfig = {
@@ -39,34 +39,40 @@ export class App extends Component {
     event.preventDefault();
   };
 
+  handleProvider = (providerName, providerInstance) => {
+    signInWithPopup(auth, providerInstance)
+      .then((result) => {
+        this.setState({ message: `Successfully logged in via ${providerName}.`, type: 1 });
+        console.log(result)
+      })
+      .catch((error) => {
+        if (error.code === "auth/account-exists-with-different-credential") {
+          this.setState({ message: "An account already exists with this email..", type: 0 });
+        } else {
+          this.setState({ message: "Something went wrong.", type: 0 });
+        }
+      });
+  };
+
   googleHandler = () => {
     var provider = new GoogleAuthProvider()
-    signInWithPopup(auth, provider).then((response) => {
-      this.setState({ message: "Successfully registered via google..", type: 1 })
-    }).catch((error) => {
-      console.log(error)
-    })
+    this.handleProvider('Google', provider);
   }
+
+  twitterHandler = () => {
+    const provider = new TwitterAuthProvider();
+    this.handleProvider('Twitter', provider);
+  };
+
 
   facebookHandler = () => {
     var provider = new FacebookAuthProvider();
-    if (auth.currentUser) {
-      linkWithPopup(auth.currentUser, provider)
-        .then((response) => {
-          this.setState({ message: "Successfully Registered via facebook..", type: 1 });
-        })
-        .catch((error) => {
-          if (error.code === "auth/account-exists-with-different-credential") {
-            this.setState({ message: "An account already exists with this email.", type: 0 });
-          }
-        });
-    } else
-      signInWithPopup(auth, provider).then((response) => {
-        this.setState({ message: "Successfully registered via facebook..", type: 1 })
-      }).catch((error) => {
-        if (error.code === "auth/user-cancelled")
-          this.setState({ message: "Registration cancelled..", type: 0 })
-      })
+    this.handleProvider('Facebook', provider);
+  }
+
+  gitHubHandler = () => {
+    var provider = new GithubAuthProvider();
+    this.handleProvider('Github', provider);
   }
 
   registrationHandler = (event) => {
@@ -78,74 +84,89 @@ export class App extends Component {
       this.setState({ message: "Password does not match", type: 0 })
       return;
     }
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        // Signed in 
-        const user = userCredential.user;
 
-        // Store user data in the database
-        set(ref(database, 'users/' + user.uid), {
-          email: email,
-          uid: user.uid,
-        });
-        sendEmailVerification(user) // Use the user object here
-          .then(() => {
-            this.setState({ message: "Registered Successfully. Verification email sent.", type: 1 }, () => {
+    fetchSignInMethodsForEmail(auth, email).then((methods) => {
+      if (methods.length > 0) {
+        this.setState({ message: "Email is already registered with another provider.", type: 0 });
+        return;
+      }
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+
+          set(ref(database, 'users/' + user.uid), { email, uid: user.uid });
+
+          sendEmailVerification(user).then(() => {
+            this.setState({
+              message: "Registered successfully. Verification email sent.",
+              type: 1
+            }, () => {
               event.target.email.value = "";
               event.target.password.value = "";
               event.target.confirmPassword.value = "";
             });
           });
-      })
-      .catch((error) => {
-        if (error.code === 'auth/weak-password') {
-          this.setState({ message: "Password should be at least 6 characters", type: 0 });
-        } else if (error.code === 'auth/email-already-in-use') {
-          this.setState({ message: "Email already registered..", type: 0 });
-        } else {
-          this.setState({ message: error.message, type: 0 });
-        }
-      });
-  }
+        })
+        .catch((error) => {
+          if (error.code === 'auth/weak-password') {
+            this.setState({ message: "Password should be at least 6 characters.", type: 0 });
+          } else if (error.code === 'auth/email-already-in-use') {
+            this.setState({ message: "Email already registered.", type: 0 });
+          } else {
+            this.setState({ message: error.message, type: 0 });
+          }
+        });
+    });
+  };
 
   loginHandler = (event) => {
     event.preventDefault();
     const email = event.target.email.value;
     const password = event.target.password.value;
 
-    signInWithEmailAndPassword(auth, email, password).then((data) => {
-      if (data.user.emailVerified === true) {
-        this.setState({ message: "Login Successful...", type: 1 }, () => {
-          event.target.email.value = ""
-          event.target.password.value = ""
-        });
-      } else {
-        this.setState({ message: "Email is not verified yet. Please check you email..", type: 0 }, () => { })
-      }
-
-    }).catch((error) => {
-      if (error.code === "auth/invalid-credential")
-        this.setState({ message: "Invalid credential details..Try again", type: 0 });
-    })
-  }
+    signInWithEmailAndPassword(auth, email, password)
+      .then((data) => {
+        if (data.user.emailVerified) {
+          this.setState({ message: "Login successful.", type: 1 });
+        } else {
+          this.setState({ message: "Please verify your email.", type: 0 }, () => {
+            event.target.email.value = "";
+            event.target.password.value = "";
+          });
+        }
+      })
+      .catch(() => this.setState({ message: "Invalid credentials. Try again.", type: 0 }));
+  };
 
   render() {
-    return <div>{
-      this.state.page ?
-        <Register
-          message={this.state.message}
-          type={this.state.type}
-          switch={this.pageSwitchHandler}
-          register={this.registrationHandler}
-          google={this.googleHandler}
-          facebook={this.facebookHandler}
-        /> :
-        <Login
-          message={this.state.message}
-          type={this.state.type}
-          switch={this.pageSwitchHandler}
-          login={this.loginHandler} />}</div>;
+    return <div>
+      {
+        this.state.page ?
+          <Register
+            message={this.state.message}
+            type={this.state.type}
+            switch={this.pageSwitchHandler}
+            register={this.registrationHandler}
+            google={this.googleHandler}
+            facebook={this.facebookHandler}
+            twitter={this.twitterHandler}
+            gitHub={this.gitHubHandler}
+          /> :
+          <Login
+            message={this.state.message}
+            type={this.state.type}
+            switch={this.pageSwitchHandler}
+            login={this.loginHandler}
+            google={this.googleHandler}
+            facebook={this.facebookHandler}
+            twitter={this.twitterHandler}
+            gitHub={this.gitHubHandler}
+          />
+      }
+    </div>;
   }
 }
 
 export default App;
+export { auth, app };
+

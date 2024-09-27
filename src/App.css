@@ -18,26 +18,6 @@
   max-width: 440px;
 }
 
-.btn-google {
-  background-color: #4285f4;
-  color: white;
-  border-radius: 10px;
-  border: 0;
-  padding: 5px;
-}
-
-.btn-facebook {
-  background-color: #3b5998;
-  color: white;
-  border-radius: 10px;
-  border: 0;
-  padding: 5px;
-}
-
-.btn-twitter {
-  background-color: #2f79f0;
-  color: white;
-  border-radius: 10px;
-  border: 0;
-  padding: 5px;
+.blur-background {
+  filter: blur(2px);
 }
