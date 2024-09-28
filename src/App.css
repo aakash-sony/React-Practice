@@ -17,7 +17,3 @@
   width: 100%;
   max-width: 440px;
 }
-
-.blur-background {
-  filter: blur(2px);
-}

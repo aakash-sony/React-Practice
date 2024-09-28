@@ -1,5 +1,5 @@
 import React from 'react'
-import { FaGoogle, FaFacebookF, FaTwitter, FaLinkedinIn, FaPhoneAlt, FaGithub } from 'react-icons/fa';
+import { FaGoogle, FaFacebookF, FaTwitter, FaGithub } from 'react-icons/fa';
 export default function Login(props) {
     let msgClass = ["text-center"];
     if (props.type) {
@@ -57,27 +57,12 @@ export default function Login(props) {
                         onMouseEnter={handleMouseEnter}
                         onMouseLeave={handleMouseLeave}
                     />
-                    <FaLinkedinIn
-                        size={34}
-                        color="#0077B5"
-                        style={iconStyle}
-                        onClick={props.linkedin}
-                        onMouseEnter={handleMouseEnter}
-                        onMouseLeave={handleMouseLeave}
-                    />
+
                     <FaGithub
                         size={34}
                         color="#333"
                         style={iconStyle}
                         onClick={props.gitHub}
-                        onMouseEnter={handleMouseEnter}
-                        onMouseLeave={handleMouseLeave}
-                    />
-                    <FaPhoneAlt
-                        size={34}
-                        color="#28a745"
-                        style={iconStyle}
-                        onClick={props.phone}
                         onMouseEnter={handleMouseEnter}
                         onMouseLeave={handleMouseLeave}
                     />

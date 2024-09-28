@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { FaGoogle, FaFacebookF, FaTwitter, FaLinkedinIn, FaPhoneAlt, FaGithub } from 'react-icons/fa';
+import React, { useState, useRef } from 'react';
+import { FaGoogle, FaFacebookF, FaTwitter, FaGithub } from 'react-icons/fa';
 
 export default function Register(props) {
     let msgClass = ["text-center"];
@@ -26,6 +26,7 @@ export default function Register(props) {
         e.target.style.transform = 'scale(1)'; // Reset zoom
         e.target.style.boxShadow = '0px 4px 6px rgba(0, 0, 0, 0.1)'; // Reset shadow
     };
+
 
     return (
         <div className="container d-flex main">
@@ -58,14 +59,7 @@ export default function Register(props) {
                         onMouseEnter={handleMouseEnter}
                         onMouseLeave={handleMouseLeave}
                     />
-                    <FaLinkedinIn
-                        size={34}
-                        color="#0077B5"
-                        style={iconStyle}
-                        onClick={props.linkedin}
-                        onMouseEnter={handleMouseEnter}
-                        onMouseLeave={handleMouseLeave}
-                    />
+
                     <FaGithub
                         size={34}
                         color="#333"
@@ -74,14 +68,7 @@ export default function Register(props) {
                         onMouseEnter={handleMouseEnter}
                         onMouseLeave={handleMouseLeave}
                     />
-                    <FaPhoneAlt
-                        size={34}
-                        color="#28a745"
-                        style={iconStyle}
-                        //   onClick={handlePhoneLogin}
-                        onMouseEnter={handleMouseEnter}
-                        onMouseLeave={handleMouseLeave}
-                    />
+
                 </div>
 
                 <p className="my-2">---------------------OR-----------------------</p>
@@ -101,6 +88,8 @@ export default function Register(props) {
                 </form>
 
                 <p className="mt-3">Have an account? <a href="#" onClick={props.switch}>Log In</a></p>
+
+
             </div>
         </div>
     );

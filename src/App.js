@@ -22,7 +22,6 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 const auth = getAuth(app);
 
-
 export class App extends Component {
   constructor(props) {
     super(props);
